@@ -1,5 +1,5 @@
 import sys  # the sys library provides various functions and variables that are used to manipulate different parts of the Python runtime environment. 
-import logging 
+from src.logger import logging 
 
 # function to generate error message details
 def error_message_detail(error, error_detail:sys):
@@ -20,11 +20,5 @@ class CustomException(Exception):
         return self.error_message
 
 
-if __name__ == "__main__":
-    try:
-        a = 1 / 0
-    except Exception as e:
-        logging.info("Divide by zero exception occurred")
-        raise CustomException(e, sys)
-    
+
       
