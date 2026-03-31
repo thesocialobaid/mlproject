@@ -1,6 +1,3 @@
-# We will start with the local data sources and then improvise the data ingestion pipeline. 
-# We will read the data, split the data into train test splits 
-
 import os 
 import sys 
 from src.exception import CustomException
@@ -10,21 +7,18 @@ import pandas as pd
 from sklearn.model_selection import train_test_split 
 from dataclasses import dataclass 
 from src.components.data_transformation import DataTransformationConfig
-from src.components.data_transformation import DataTransfrormation 
-from src.components.model_trainer import ModelTrainerConfig
-
-
+from src.components.data_transformation import DataTransformation          # ✅ Fix 1: typo fixed
+from src.components.model_trainer import ModelTrainer                      # ✅ Fix 5: removed unused ModelTrainerConfig
 
 @dataclass 
 class DataIngestionConfig: 
-    train_data_path: str=os.path.join('artifacts','train.csv')    # all the outputs are stored inside the artifact folder. 
-    test_data_path: str=os.path.join('artifacts','test.csv')
-    raw_data_path: str=os.path.join('artifacts','data.csv')       # initial raw data. 
-    
+    train_data_path: str = os.path.join('artifacts', 'train.csv')
+    test_data_path: str = os.path.join('artifacts', 'test.csv')
+    raw_data_path: str = os.path.join('artifacts', 'data.csv')
 
 class DataIngestion: 
     def __init__(self):
-         self.ingestion_config = DataIngestionConfig()
+        self.ingestion_config = DataIngestionConfig()
     
     def initiate_data_ingestion(self):
         logging.info("Entered the data ingestion method or component")
@@ -32,15 +26,15 @@ class DataIngestion:
             df = pd.read_csv('notebook/data/stud.csv')
             logging.info("Read the dataset as dataframe")
             
-            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
             
-            df.to_csv(self.ingestion_config.raw_data_path,index=False,header=True)
+            df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
             
             logging.info("Train test split initiated") 
-            train_set, test_set = train_test_split(df,test_size=0.2,random_state=42)
+            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
             
-            train_set.to_csv(self.ingestion_config.train_data_path,index=False, header=True)
-            test_set.to_csv(self.ingestion_config.test_data_path,index=False, header=True)
+            train_set.to_csv(self.ingestion_config.train_data_path, index=False, header=True)
+            test_set.to_csv(self.ingestion_config.test_data_path, index=False, header=True)
             
             logging.info("Ingestion of the data is completed") 
             
@@ -49,16 +43,18 @@ class DataIngestion:
                 self.ingestion_config.test_data_path,
             )
         except Exception as e: 
-            raise CustomException(e,sys)
+            raise CustomException(e, sys)
         
 if __name__ == "__main__": 
     obj = DataIngestion()
-    train_data, test_data=obj.initiate_data_ingestion()
+    train_data, test_data = obj.initiate_data_ingestion()
     
-    data_transformation = DataTransfrormation() 
-    train_arr,test_arr = data_transformation.initiate_data_transformation(train_data,test_data)
+    data_transformation = DataTransformation()                             # ✅ Fix 2: typo fixed
+    train_arr, test_arr, preprocessor_path = data_transformation.initiate_data_transformation(train_data, test_data)  # ✅ Fix 3
+
+    model_trainer = ModelTrainer()
+    print(model_trainer.initiate_model_trainer(train_arr, test_arr, preprocessor_path))  # ✅ Fix 4
     
-    model_trainer= ModelTrainer()
-    print(model_trainer.initiate_model_trainer(train_arr, test_arr))
-    
+    # the best performing model out of the 8 candidates was automatically saved to artifacts/models.pk1 
+    # this .pk1 file is what we load later when building a prediction API or web app to serve predictions on new student data 
     

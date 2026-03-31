@@ -14,13 +14,13 @@ from sklearn.preprocessing import StandardScaler # Standard Scaler is used to st
 
 from src.exception import CustomException 
 from src.logger import logging 
-from src.util import save_object
+from src.utils import save_object
 
 @dataclass # data class is used to create classes that primarily store data with less boilerplate code.
 class DataTransformationConfig: #class for data-transformation config 
     preprocessor_obj_file_path= os.path.join('artifacts','preprocessor.pkl')  # a pkl file is a serialized Python object created using the pickle module. In Python "pickling" is the process of converting a Python object hierarchy into a byte stream 
     
-class DataTransfrormation: 
+class DataTransformation: 
     def __init__(self): 
         self.data_transformation_config = DataTransformationConfig()
     
@@ -52,14 +52,15 @@ class DataTransfrormation:
                     ("encoder", OneHotEncoder()), # one hot encoder is used to convert categorical data into numerical data by creating multiple binary columns for each category. 
                 ]
             )
-            logging.info("Numrical columns scaling completed")
-            logging.info("Categorical columns encoding completed")
             
             preprocessor = ColumnTransformer(
                 [ ("num_pipeline",num_pipeline, numerical_columns), 
                     ("cat_pipeline", cat_pipeline, categorical_columns)
                     ]
             )
+            logging.info("Numrical columns scaling completed")
+            logging.info("Categorical columns encoding completed")
+            
             
             return preprocessor
         except Exception as e:
