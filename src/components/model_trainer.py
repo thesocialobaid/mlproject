@@ -8,6 +8,9 @@ import os
 import sys 
 from dataclasses import dataclass                       
 
+import mlflow
+import mlflow.sklearn
+
 from catboost import CatBoostRegressor 
 from sklearn.ensemble import(
     AdaBoostRegressor,
@@ -16,7 +19,7 @@ from sklearn.ensemble import(
 )
 
 from sklearn.linear_model import LinearRegression        
-from sklearn.metrics import r2_score 
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
@@ -58,27 +61,18 @@ class ModelTrainer:
             params = {
                 "Decision Tree": { 
                     'criterion': ['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
-                    # 'splitter': ['best', 'random'],
-                    # 'max_features': ['sqrt', 'log2']
                 }, 
                 "Random Forest": {
-                    # 'criterion': ['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
-                    # max features : ['sqrt', 'log2', None], 
                     'n_estimators': [8, 16, 32, 64, 128, 256]
                 },
                 "Gradient Boosting": {
-                    # 'loss': ['squared_error', 'huber', 'absolute_error', 'quantile'],
                     'learning_rate': [0.1, 0.01, 0.05, 0.001],
                     'subsample': [0.6, 0.7, 0.75, 0.8, 0.85, 0.9],
-                    # 'criterion': ['squared_error', 'friedman_mse'],
-                    # 'max_features': ['auto', 'sqrt', 'log2']
                     'n_estimators': [8, 16, 32, 64, 128, 256]
                 },
                 "Linear Regression": {}, 
                 "K-Neighbors Regressor": { 
                     'n_neighbors': [5, 7, 9, 11], 
-                    # 'weights': ['uniform', 'distance'], 
-                    # algorithm: ['auto', 'ball_tree', 'kd_tree', 'brute']
                 }, 
                 "XGB Regressor": {
                     'learning_rate': [0.1, 0.01, 0.05, 0.001],
@@ -94,6 +88,12 @@ class ModelTrainer:
                     'n_estimators': [8, 16, 32, 64, 128, 256]
                 }
             } 
+
+            # ── MLflow: set where runs are stored and name the experiment ──
+            mlflow.set_tracking_uri("mlruns")          # saves inside your project root
+            mlflow.set_experiment("student-exam-performance")
+
+            # ── evaluate all models (your existing logic, untouched) ──
             model_report: dict = evaluate_model(
                 X_train=X_train, y_train=y_train, 
                 X_test=X_test, y_test=y_test, 
@@ -101,9 +101,33 @@ class ModelTrainer:
                 params=params
             )
             
+            # ── log every model as its own MLflow run ──
+            for model_name, model_score in model_report.items():
+                with mlflow.start_run(run_name=model_name):
+                    
+                    # log the best hyperparams found for this model
+                    best_params = models[model_name].get_params()
+                    mlflow.log_params(best_params)
+
+                    # log the r2 score from evaluate_model
+                    mlflow.log_metric("r2_score", model_score)
+
+                    # re-predict with this model to get MAE and RMSE too
+                    preds = models[model_name].predict(X_test)
+                    mlflow.log_metric("mae",  mean_absolute_error(y_test, preds))
+                    mlflow.log_metric("rmse", mean_squared_error(y_test, preds, squared=False))
+
+                    # tag so you can filter in the UI
+                    mlflow.set_tag("model_name", model_name)
+
+                    # log the model artifact itself
+                    mlflow.sklearn.log_model(models[model_name], artifact_path="model")
+
+                    logging.info(f"MLflow run logged → {model_name} | R2: {model_score:.4f}")
+
+            # ── pick the best model (your existing logic, untouched) ──
             best_model_score = max(sorted(model_report.values()))
-            
-            best_model_name = list(model_report.keys())[ 
+            best_model_name  = list(model_report.keys())[ 
                 list(model_report.values()).index(best_model_score)                           
             ]
             best_model = models[best_model_name]
@@ -111,19 +135,30 @@ class ModelTrainer:
             if best_model_score < 0.6:                   
                 raise CustomException("No Best Model found", sys)
 
-            logging.info("Best found model on both training and testing dataset")
+            logging.info(f"Best model: {best_model_name} with R2 score: {best_model_score:.4f}")
+
+            # ── log the winner separately so it's easy to find in the UI ──
+            with mlflow.start_run(run_name=f"BEST__{best_model_name}"):
+                mlflow.log_params(best_model.get_params())
+                mlflow.log_metric("r2_score", best_model_score)
+
+                best_preds = best_model.predict(X_test)
+                mlflow.log_metric("mae",  mean_absolute_error(y_test, best_preds))
+                mlflow.log_metric("rmse", mean_squared_error(y_test, best_preds, squared=False))
+
+                mlflow.set_tag("model_name", best_model_name)
+                mlflow.set_tag("status", "best")          # easy to filter in UI
+                mlflow.sklearn.log_model(best_model, artifact_path="model")
                 
+            # ── save pkl as before (your existing logic, untouched) ──
             save_object(
                 file_path=self.model_trainer_config.trained_model_file_path,
                 obj=best_model
             )
                 
             predicted = best_model.predict(X_test)
-                
-            score = r2_score(y_test, predicted)           # ✅ Fix 5: renamed variable to 'score'
+            score = r2_score(y_test, predicted)
             return score
 
         except Exception as e: 
             raise CustomException(e, sys)
-        
-        
