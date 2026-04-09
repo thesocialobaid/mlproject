@@ -1,111 +1,484 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Exam Performance Indicator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --paper:      #fdf6e3;
+      --paper-dark: #f5e9c8;
+      --ink:        #2c2416;
+      --ink-soft:   #5a4a32;
+      --rule:       #ddd0b0;
+      --red-pen:    #c0392b;
+      --blue-pen:   #2563a8;
+      --pencil:     #7a6a50;
+      --highlight:  #f9e04b;
+      --sticky-y:   #fef08a;
+      --sticky-b:   #bfdbfe;
+      --sticky-g:   #bbf7d0;
+      --sticky-p:   #f5d0fe;
+      --margin:     48px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background-color: #e8dcc8;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, #d4c4a0 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, #c8b898 0%, transparent 55%);
+      font-family: 'Nunito', sans-serif;
+      color: var(--ink);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2.5rem 1rem 3rem;
+    }
+
+    /* ── BACKGROUND DOODLES ── */
+    .doodle-bg {
+      position: fixed; inset: 0;
+      pointer-events: none; overflow: hidden; z-index: 0;
+    }
+    .doodle-bg svg { position: absolute; opacity: .11; }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(0px) rotate(0deg); }
+      50%  { transform: translateY(-16px) rotate(2deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    .d1 { left:3%;   top:8%;    width:90px;  animation: floatUp 7s ease-in-out infinite; }
+    .d2 { right:5%;  top:6%;    width:26px;  animation: floatUp 9s ease-in-out 1s infinite; }
+    .d3 { right:4%;  bottom:9%; width:100px; animation: floatUp 11s ease-in-out 2s infinite; }
+    .d4 { left:2%;   bottom:11%;width:110px; animation: floatUp 8s ease-in-out 3s infinite; }
+    .d5 { right:17%; top:14%;   width:42px;  animation: floatUp 6s ease-in-out .5s infinite; }
+    .d6 { left:14%;  top:2%;    width:140px; animation: floatUp 13s ease-in-out 4s infinite; }
+
+    /* ── NOTEBOOK SHELL ── */
+    .notebook {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 660px;
+      background: var(--paper);
+      border-radius: 4px 12px 12px 4px;
+      box-shadow:
+        -6px 0 0 #c8a87a,
+        0 4px 6px rgba(0,0,0,.12),
+        4px 8px 24px rgba(0,0,0,.18),
+        8px 12px 40px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+
+    /* ruled lines */
+    .notebook::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 31px,
+        var(--rule) 31px, var(--rule) 32px
+      );
+      background-position: 0 64px;
+    }
+    /* red margin */
+    .notebook::after {
+      content: '';
+      position: absolute; top: 0; bottom: 0;
+      left: var(--margin); width: 2px;
+      background: rgba(192,57,43,.28); z-index: 0;
+    }
+
+    /* spiral rings */
+    .rings {
+      position: absolute; left: -14px; top: 28px;
+      display: flex; flex-direction: column; gap: 36px; z-index: 10;
+    }
+    .ring {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #c8a87a; border: 3px solid #9a7550;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.2);
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      position: relative; z-index: 1;
+      padding: 2rem 2rem 2.5rem calc(var(--margin) + 1.5rem);
+    }
+
+    /* ── HEADER ── */
+    .subject-label {
+      font-family: 'Caveat', cursive;
+      font-size: .95rem; color: var(--red-pen);
+      display: flex; align-items: center; gap: .4rem;
+      margin-bottom: .25rem;
+    }
+    .subject-label::before {
+      content: ''; display: inline-block;
+      width: 18px; height: 2px; background: var(--red-pen);
+    }
+
+    h1 {
+      font-family: 'Lora', serif;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 500; line-height: 1.25; color: var(--ink);
+      margin-bottom: .35rem;
+    }
+    h1 em {
+      font-style: italic; color: var(--blue-pen);
+      position: relative;
+    }
+    h1 em::after {
+      content: ''; position: absolute;
+      bottom: -2px; left: 0; right: 0; height: 3px;
+      background: var(--highlight); opacity: .75; z-index: -1;
+    }
+
+    .subtitle {
+      font-family: 'Caveat', cursive;
+      font-size: 1.05rem; color: var(--pencil); margin-top: .25rem;
+    }
+
+    .underline-hand { margin: .9rem 0 1.5rem; }
+    .underline-hand svg { width: 100%; height: 10px; overflow: visible; display: block; }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: var(--blue-pen); font-weight: 700;
+      margin-top: 1.4rem; margin-bottom: .65rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-label .num {
+      background: var(--blue-pen); color: #fff;
+      border-radius: 50%; width: 22px; height: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* ── STICKY NOTES ── */
+    .sticky-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .sticky {
+      border-radius: 3px; padding: .9rem 1rem 1rem;
+      position: relative;
+      box-shadow: 2px 3px 8px rgba(0,0,0,.12), 1px 1px 0 rgba(0,0,0,.06);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .sticky:nth-child(odd)  { transform: rotate(-0.4deg); }
+    .sticky:nth-child(even) { transform: rotate(0.3deg); }
+    .sticky:hover { transform: rotate(0deg) scale(1.02); box-shadow: 3px 6px 16px rgba(0,0,0,.18); z-index: 2; }
+    .sticky::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 6px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.06), transparent);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .sticky.yellow { background: var(--sticky-y); }
+    .sticky.blue   { background: var(--sticky-b); }
+    .sticky.green  { background: var(--sticky-g); }
+    .sticky.pink   { background: var(--sticky-p); }
+    .sticky.full   { grid-column: 1 / -1; }
+
+    .sticky label {
+      display: block;
+      font-family: 'Caveat', cursive;
+      font-size: .95rem; font-weight: 700;
+      color: var(--ink-soft); margin-bottom: .45rem;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      background: rgba(255,255,255,.65);
+      border: 1.5px solid rgba(0,0,0,.15);
+      border-radius: 6px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .875rem; color: var(--ink);
+      padding: .5rem .75rem; outline: none;
+      appearance: none; -webkit-appearance: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+      cursor: pointer;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a4a32' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .7rem center;
+      padding-right: 2rem;
+    }
+    select option { background: #fff; }
+    select:focus, input[type="number"]:focus {
+      border-color: var(--blue-pen);
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 0 0 3px rgba(37,99,168,.15);
+    }
+    input[type="number"]::placeholder { color: #a09080; font-size: .82rem; }
+
+    .score-pair { display: flex; gap: .7rem; }
+    .score-field { flex: 1; }
+    .score-tag {
+      font-family: 'Caveat', cursive;
+      font-size: .82rem; color: var(--pencil); margin-bottom: .25rem;
+    }
+
+    /* ── SUBMIT ── */
+    .btn-wrap { margin-top: 1.8rem; text-align: center; }
+    .btn-submit {
+      display: inline-flex; align-items: center; gap: .55rem;
+      background: var(--blue-pen); color: #fff;
+      border: none; border-radius: 8px;
+      font-family: 'Caveat', cursive;
+      font-size: 1.2rem; font-weight: 700;
+      padding: .75rem 2.2rem; cursor: pointer;
+      box-shadow: 0 4px 0 #1a4a8a, 0 6px 12px rgba(37,99,168,.3);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-submit svg { width: 20px; height: 20px; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #1a4a8a, 0 10px 20px rgba(37,99,168,.3); }
+    .btn-submit:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a4a8a; }
+
+    .btn-doodle {
+      font-family: 'Caveat', cursive;
+      font-size: .85rem; color: var(--pencil);
+      margin-top: .4rem; opacity: .7;
+    }
+    .btn-doodle::before { content: '← '; }
+
+    /* ── RESULT ── */
+    .result-area {
+      margin-top: 1.6rem;
+      background: #fff9e6;
+      border: 2px dashed #c9a84c;
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      text-align: center;
+    }
+    .result-note { font-family: 'Caveat', cursive; font-size: .95rem; color: var(--pencil); margin-bottom: .3rem; }
+    .result-score { font-family: 'Lora', serif; font-size: 3rem; font-weight: 500; color: var(--red-pen); line-height: 1; }
+    .result-lbl   { font-family: 'Caveat', cursive; font-size: .9rem; color: var(--pencil); margin-top: .2rem; }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      margin-top: 1.8rem; padding-top: .8rem;
+      border-top: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .page-num, .page-date {
+      font-family: 'Caveat', cursive; font-size: .88rem; color: var(--pencil);
+    }
+    .page-date { opacity: .6; }
+
+    @media (max-width: 500px) {
+      .sticky-grid  { grid-template-columns: 1fr; }
+      .score-pair   { flex-direction: column; }
+      .content      { padding: 1.5rem 1.2rem 2rem 3.8rem; }
+    }
+  </style>
+</head>
 <body>
-    <div class="login">
-       <h1>Student Exam Performance Indicator</h1>
-   
-       <form action="{{ url_for('predict_datapoint')}}" method="post">
-        <h1>
-            <legend>Student Exam Performance Prediction</legend>
-        </h1>
-        <div class="mb-3">
-            <label class="form-label">Gender</label>
-            <select class="form-control" name="gender" placeholder="Enter you Gender" required>
-                <option class="placeholder" selected disabled value="">Select your Gender</option>
-                <option value="male">
-                    Male
-                </option>
-                <option value="female">
-                    Female
-                </option>
-            </select>
+
+<!-- hand-drawn background doodles -->
+<div class="doodle-bg">
+  <!-- closed book -->
+  <svg class="d1" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="5" width="55" height="85" rx="4" stroke="#5a4a32" stroke-width="2.5"/>
+    <rect x="5"  y="5" width="12" height="85" rx="3" stroke="#5a4a32" stroke-width="2" fill="#5a4a32" fill-opacity=".12"/>
+    <line x1="25" y1="30" x2="58" y2="30" stroke="#5a4a32" stroke-width="1.5"/>
+    <line x1="25" y1="42" x2="58" y2="42" stroke="#5a4a32" stroke-width="1.5"/>
+    <line x1="25" y1="54" x2="45" y2="54" stroke="#5a4a32" stroke-width="1.5"/>
+  </svg>
+  <!-- pencil -->
+  <svg class="d2" viewBox="0 0 20 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="5" width="14" height="75" rx="2" stroke="#5a4a32" stroke-width="2"/>
+    <polygon points="10,100 3,80 17,80" stroke="#5a4a32" stroke-width="1.5" fill="none"/>
+    <line x1="3" y1="80" x2="17" y2="80" stroke="#5a4a32" stroke-width="1.5"/>
+    <rect x="3" y="5" width="14" height="8" stroke="#5a4a32" stroke-width="1.5"/>
+  </svg>
+  <!-- graduation cap -->
+  <svg class="d3" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="50,5 95,28 50,51 5,28" stroke="#5a4a32" stroke-width="2"/>
+    <line x1="50" y1="51" x2="50" y2="68" stroke="#5a4a32" stroke-width="2"/>
+    <path d="M35 60 Q50 72 65 60" stroke="#5a4a32" stroke-width="2" fill="none"/>
+    <line x1="95" y1="28" x2="95" y2="50" stroke="#5a4a32" stroke-width="2"/>
+    <circle cx="95" cy="54" r="4" stroke="#5a4a32" stroke-width="2"/>
+  </svg>
+  <!-- open book -->
+  <svg class="d4" viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50 15 Q30 10 5 18 L5 62 Q30 54 50 60" stroke="#5a4a32" stroke-width="2"/>
+    <path d="M50 15 Q70 10 95 18 L95 62 Q70 54 50 60" stroke="#5a4a32" stroke-width="2"/>
+    <line x1="50" y1="15" x2="50" y2="60" stroke="#5a4a32" stroke-width="1.5"/>
+    <line x1="18" y1="28" x2="42" y2="26" stroke="#5a4a32" stroke-width="1"/>
+    <line x1="18" y1="36" x2="42" y2="34" stroke="#5a4a32" stroke-width="1"/>
+    <line x1="58" y1="26" x2="82" y2="28" stroke="#5a4a32" stroke-width="1"/>
+    <line x1="58" y1="34" x2="82" y2="36" stroke="#5a4a32" stroke-width="1"/>
+  </svg>
+  <!-- star -->
+  <svg class="d5" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 2 L23.5 14 L36 14 L26 21.5 L29.5 34 L20 27 L10.5 34 L14 21.5 L4 14 L16.5 14 Z" stroke="#5a4a32" stroke-width="1.8"/>
+  </svg>
+  <!-- ruler -->
+  <svg class="d6" viewBox="0 0 160 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="8" width="156" height="18" rx="2" stroke="#5a4a32" stroke-width="1.8"/>
+    <line x1="20"  y1="8" x2="20"  y2="16" stroke="#5a4a32" stroke-width="1.2"/>
+    <line x1="40"  y1="8" x2="40"  y2="16" stroke="#5a4a32" stroke-width="1.2"/>
+    <line x1="60"  y1="8" x2="60"  y2="20" stroke="#5a4a32" stroke-width="1.5"/>
+    <line x1="80"  y1="8" x2="80"  y2="16" stroke="#5a4a32" stroke-width="1.2"/>
+    <line x1="100" y1="8" x2="100" y2="20" stroke="#5a4a32" stroke-width="1.5"/>
+    <line x1="120" y1="8" x2="120" y2="16" stroke="#5a4a32" stroke-width="1.2"/>
+    <line x1="140" y1="8" x2="140" y2="16" stroke="#5a4a32" stroke-width="1.2"/>
+  </svg>
+</div>
+
+<!-- ══════════ NOTEBOOK ══════════ -->
+<div class="notebook">
+
+  <div class="rings">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- HEADER -->
+    <div class="subject-label">MLOps Project · Exam Analytics</div>
+    <h1>Student Exam<br><em>Performance Predictor</em></h1>
+    <p class="subtitle">✏️ Fill in the details below to get a predicted maths score</p>
+    <div class="underline-hand">
+      <svg viewBox="0 0 500 10" preserveAspectRatio="none">
+        <path d="M0,5 C60,2 120,8 180,5 C240,2 300,8 360,5 C420,2 480,8 500,5"
+              stroke="#c0392b" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- ══ FORM ══ -->
+    <form action="{{ url_for('predict_datapoint')}}" method="post">
+
+      <!-- Section 1 -->
+      <div class="section-label"><span class="num">1</span> Who is the student?</div>
+      <div class="sticky-grid">
+        <div class="sticky yellow">
+          <label>Gender</label>
+          <select name="gender" required>
+            <option selected disabled value="">Pick one…</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Race or Ethnicity</label>
-            <select class="form-control" name="ethnicity" placeholder="Enter you ethnicity" required>
-                <option class="placeholder" selected disabled value="">Select Ethnicity</option>
-                <option value="group A">
-                    Group A
-                </option>
-                <option value="group B">
-                    Group B
-                </option>
-                <option value="group C">
-                    Group C
-                </option>
-                <option value="group D">
-                    Group D
-                </option>
-                <option value="group E">
-                    Group E
-                </option>
-            </select>
+        <div class="sticky blue">
+          <label>Race / Ethnicity</label>
+          <select name="ethnicity" required>
+            <option selected disabled value="">Pick one…</option>
+            <option value="group A">Group A</option>
+            <option value="group B">Group B</option>
+            <option value="group C">Group C</option>
+            <option value="group D">Group D</option>
+            <option value="group E">Group E</option>
+          </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Parental Level of Education</label>
-            <select class="form-control" name="parental_level_of_education"
-                placeholder="Enter you Parent Education" required>
-                <option class="placeholder" selected disabled value="">Select Parent Education</option>
-                <option value="associate's degree">
-                    associate's degree
-                </option>
-                <option value="bachelor's degree">
-                    bachelor's degree
-                </option>
-                <option value="high school">
-                    high school
-                </option>
-                <option value="master's degree">
-                    master's degree
-                </option>
-                <option value="some college">
-                    some college
-                </option>
-                <option value="some high school">
-                    some high school
-                </option>
-            </select>
+        <div class="sticky green full">
+          <label>Parent's Level of Education</label>
+          <select name="parental_level_of_education" required>
+            <option selected disabled value="">Choose education level…</option>
+            <option value="associate's degree">Associate's Degree</option>
+            <option value="bachelor's degree">Bachelor's Degree</option>
+            <option value="high school">High School</option>
+            <option value="master's degree">Master's Degree</option>
+            <option value="some college">Some College</option>
+            <option value="some high school">Some High School</option>
+          </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Lunch Type</label>
-            <select class="form-control" name="lunch" placeholder="Enter you Lunch" required>
-                <option class="placeholder" selected disabled value="">Select Lunch Type</option>
-                <option value="free/reduced">
-                    free/reduced
-                </option>
-                <option value="standard">
-                    standard
-                </option>
-            </select>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="section-label"><span class="num">2</span> School &amp; preparation</div>
+      <div class="sticky-grid">
+        <div class="sticky pink">
+          <label>Lunch Type</label>
+          <select name="lunch" required>
+            <option selected disabled value="">Select…</option>
+            <option value="free/reduced">Free / Reduced</option>
+            <option value="standard">Standard</option>
+          </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Test preparation Course</label>
-            <select class="form-control" name="test_preparation_course" placeholder="Enter you Course"
-                required>
-                <option class="placeholder" selected disabled value="">Select Test_course</option>
-                <option value="none">
-                    None
-                </option>
-                <option value="completed">
-                    Completed
-                </option>
-            </select>
+        <div class="sticky yellow">
+          <label>Test Prep Course</label>
+          <select name="test_preparation_course" required>
+            <option selected disabled value="">Select…</option>
+            <option value="none">None taken</option>
+            <option value="completed">Completed ✓</option>
+          </select>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Writing Score out of 100</label>
-            <input class="form-control" type="number" name="reading_score"
-                placeholder="Enter your Reading score" min='0' max='100' />
+      </div>
+
+      <!-- Section 3 -->
+      <div class="section-label"><span class="num">3</span> Existing scores (out of 100)</div>
+      <div class="sticky-grid">
+        <div class="sticky blue full">
+          <label>Reading &amp; Writing Scores</label>
+          <div class="score-pair">
+            <div class="score-field">
+              <div class="score-tag">📖 Reading</div>
+              <input type="number" name="reading_score" placeholder="e.g. 72" min="0" max="100" required/>
+            </div>
+            <div class="score-field">
+              <div class="score-tag">✍️ Writing</div>
+              <input type="number" name="writing_score" placeholder="e.g. 68" min="0" max="100" required/>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Reading Score out of 100</label>
-            <input class="form-control" type="number" name="writing_score"
-                placeholder="Enter your Reading Score" min='0' max='100' />
-        </div>
-        <div class="mb-3">
-            <input class="btn btn-primary" type="submit" value="Predict your Maths Score" required />
-        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="btn-wrap">
+        <button type="submit" class="btn-submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          Predict Maths Score
+        </button>
+        <div class="btn-doodle">click to run the prediction model</div>
+      </div>
+
     </form>
-    <h2>
-       THE  prediction is {{results}}
-    </h2>
-   <body>
+
+    <!-- RESULT — Flask injects results via render_template -->
+    {% if results %}
+    <div class="result-area">
+      <div class="result-note">🎯 The model thinks this student will score…</div>
+      <div class="result-score">{{ results }}</div>
+      <div class="result-lbl">out of 100 in Mathematics</div>
+    </div>
+    {% endif %}
+
+    <!-- PAGE FOOTER -->
+    <div class="page-footer">
+      <span class="page-num">Page 1 of 1</span>
+      <span class="page-date" id="pageDate"></span>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /notebook -->
+
+<script>
+  /* today's date in footer */
+  const d = new Date();
+  document.getElementById('pageDate').textContent =
+    d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  /* stagger sticky notes on load */
+  document.querySelectorAll('.sticky').forEach((el, i) => {
+    const base = getComputedStyle(el).transform;
+    el.style.opacity = '0';
+    el.style.transition = `opacity .4s ease ${i * .09}s, transform .4s ease ${i * .09}s, box-shadow .2s`;
+    el.style.transform += ' translateY(10px)';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.transform = el.style.transform.replace(' translateY(10px)', '');
+    }));
+  });
+</script>
+</body>
 </html>
