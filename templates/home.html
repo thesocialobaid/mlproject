@@ -255,7 +255,7 @@
       text-align: center;
     }
     .result-note { font-family: 'Caveat', cursive; font-size: .95rem; color: var(--pencil); margin-bottom: .3rem; }
-    .result-score { font-family: 'Lora', serif; font-size: 3rem; font-weight: 500; color: var(--red-pen); line-height: 1; }
+    .result-score { font-family: 'Lora', serif; font-size: clamp(1.8rem,8vw,3rem); font-weight: 500; color: var(--red-pen); line-height: 1; word-break:break-all }
     .result-lbl   { font-family: 'Caveat', cursive; font-size: .9rem; color: var(--pencil); margin-top: .2rem; }
 
     /* ── FOOTER ── */
@@ -448,7 +448,7 @@
     {% if results %}
     <div class="result-area">
       <div class="result-note">🎯 The model thinks this student will score…</div>
-      <div class="result-score">{{ results }}</div>
+      <div class="result-score">{{ "%.1f"|format(results|float) }}</div>
       <div class="result-lbl">out of 100 in Mathematics</div>
     </div>
     {% endif %}

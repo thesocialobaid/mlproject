@@ -1,1 +1,269 @@
-<h1> Welcome to the home page </h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Exam Performance Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --paper:      #fdf6e3;
+      --ink:        #2c2416;
+      --ink-soft:   #5a4a32;
+      --rule:       #ddd0b0;
+      --red-pen:    #c0392b;
+      --blue-pen:   #2563a8;
+      --pencil:     #7a6a50;
+      --highlight:  #f9e04b;
+      --sticky-y:   #fef08a;
+      --sticky-b:   #bfdbfe;
+      --sticky-g:   #bbf7d0;
+      --margin:     48px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background-color: #e8dcc8;
+      background-image:
+        radial-gradient(ellipse at 20% 30%, #d4c4a0 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, #c8b898 0%, transparent 55%);
+      font-family: 'Nunito', sans-serif;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .notebook {
+      position: relative;
+      width: 100%; max-width: 660px;
+      background: var(--paper);
+      border-radius: 4px 12px 12px 4px;
+      box-shadow:
+        -6px 0 0 #c8a87a,
+        0 4px 6px rgba(0,0,0,.12),
+        4px 8px 24px rgba(0,0,0,.18),
+        8px 12px 40px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+
+    .notebook::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 31px,
+        var(--rule) 31px, var(--rule) 32px
+      );
+      background-position: 0 64px;
+    }
+    .notebook::after {
+      content: '';
+      position: absolute; top: 0; bottom: 0;
+      left: var(--margin); width: 2px;
+      background: rgba(192,57,43,.28); z-index: 0;
+    }
+
+    .rings {
+      position: absolute; left: -14px; top: 28px;
+      display: flex; flex-direction: column; gap: 36px; z-index: 10;
+    }
+    .ring {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #c8a87a; border: 3px solid #9a7550;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.2);
+    }
+
+    .content {
+      position: relative; z-index: 1;
+      padding: 2.5rem 2.5rem 3rem calc(var(--margin) + 1.5rem);
+      text-align: center;
+    }
+
+    .subject-label {
+      font-family: 'Caveat', cursive;
+      font-size: .95rem; color: var(--red-pen);
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+      margin-bottom: .5rem;
+    }
+
+    h1 {
+      font-family: 'Lora', serif;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 500; line-height: 1.25; color: var(--ink);
+      margin-bottom: .5rem;
+    }
+    h1 em {
+      font-style: italic; color: var(--blue-pen);
+      position: relative;
+    }
+    h1 em::after {
+      content: ''; position: absolute;
+      bottom: -2px; left: 0; right: 0; height: 3px;
+      background: var(--highlight); opacity: .75; z-index: -1;
+    }
+
+    .subtitle {
+      font-family: 'Caveat', cursive;
+      font-size: 1.1rem; color: var(--pencil);
+      margin-bottom: 2rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      border-radius: 8px;
+      padding: .9rem .75rem;
+      text-align: center;
+    }
+    .stat-card.yellow { background: var(--sticky-y); }
+    .stat-card.blue   { background: var(--sticky-b); }
+    .stat-card.green  { background: var(--sticky-g); }
+    .stat-num {
+      font-family: 'Lora', serif;
+      font-size: 1.6rem; font-weight: 500;
+      color: var(--blue-pen); line-height: 1;
+    }
+    .stat-lbl {
+      font-family: 'Caveat', cursive;
+      font-size: .85rem; color: var(--ink-soft);
+      margin-top: .25rem;
+    }
+
+    .features {
+      text-align: left;
+      background: rgba(255,255,255,.45);
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 2rem;
+    }
+    .features-title {
+      font-family: 'Caveat', cursive;
+      font-size: 1rem; color: var(--blue-pen); font-weight: 700;
+      margin-bottom: .75rem;
+    }
+    .feature-item {
+      display: flex; align-items: flex-start; gap: .6rem;
+      margin-bottom: .5rem;
+      font-size: .9rem; color: var(--ink-soft); line-height: 1.4;
+    }
+    .feature-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue-pen); flex-shrink: 0; margin-top: .35rem;
+    }
+
+    .btn-wrap { text-align: center; margin-bottom: 1.5rem; }
+    .btn-start {
+      display: inline-flex; align-items: center; gap: .55rem;
+      background: var(--blue-pen); color: #fff;
+      border: none; border-radius: 8px;
+      font-family: 'Caveat', cursive;
+      font-size: 1.3rem; font-weight: 700;
+      padding: .85rem 2.8rem; cursor: pointer;
+      box-shadow: 0 4px 0 #1a4a8a, 0 6px 12px rgba(37,99,168,.3);
+      transition: transform .15s, box-shadow .15s;
+      text-decoration: none;
+    }
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #1a4a8a, 0 10px 20px rgba(37,99,168,.3); }
+    .btn-start:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a4a8a; }
+
+    .tech-stack {
+      font-family: 'Caveat', cursive;
+      font-size: .88rem; color: var(--pencil);
+      margin-top: .5rem; opacity: .8;
+    }
+
+    .page-footer {
+      margin-top: 1.5rem; padding-top: .8rem;
+      border-top: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .page-num, .page-date {
+      font-family: 'Caveat', cursive; font-size: .88rem; color: var(--pencil);
+    }
+    .page-date { opacity: .6; }
+
+    @media (max-width: 500px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .content { padding: 1.5rem 1.2rem 2rem 3.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="notebook">
+  <div class="rings">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div>
+  </div>
+
+  <div class="content">
+
+    <div class="subject-label">MLOps Project · Exam Analytics</div>
+    <h1>Student Exam<br><em>Performance Predictor</em></h1>
+    <p class="subtitle">✏️ An end-to-end machine learning system trained on 8 models</p>
+
+    <div class="stats-row">
+      <div class="stat-card yellow">
+        <div class="stat-num">8</div>
+        <div class="stat-lbl">Models Compared</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-num">0.88</div>
+        <div class="stat-lbl">Best R² Score</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-num">1000</div>
+        <div class="stat-lbl">Training Samples</div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="features-title">What's under the hood?</div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        Automated model selection across CatBoost, XGBoost, Random Forest, Gradient Boosting and more
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        MLflow experiment tracking — every run logged with R², MAE and RMSE
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        GridSearchCV hyperparameter tuning across all models automatically
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        CI/CD pipeline via GitHub → AWS CodePipeline → Railway deployment
+      </div>
+    </div>
+
+    <div class="btn-wrap">
+      <a href="/predictdata" class="btn-start">
+        ✏️ Try the Predictor
+      </a>
+      <div class="tech-stack">Python · Scikit-learn · CatBoost · XGBoost · MLflow · Flask</div>
+    </div>
+
+    <div class="page-footer">
+      <span class="page-num">Page 1 of 1</span>
+      <span class="page-date" id="pageDate"></span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const d = new Date();
+  document.getElementById('pageDate').textContent =
+    d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+</script>
+</body>
+</html>
